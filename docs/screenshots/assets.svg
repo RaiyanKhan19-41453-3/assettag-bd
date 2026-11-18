@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#f8fafc"/>
+  <rect x="0" y="0" width="230" height="700" fill="#ffffff"/>
+  <rect x="0" y="0" width="230" height="64" fill="#eff6ff"/>
+  <circle cx="36" cy="32" r="14" fill="#2563eb"/>
+  <rect x="60" y="24" width="120" height="16" rx="4" fill="#1e3a8a"/>
+  <g fill="#cbd5e1">
+    <rect x="24" y="110" width="180" height="14" rx="4"/>
+    <rect x="24" y="160" width="160" height="14" rx="4"/>
+    <rect x="24" y="210" width="170" height="14" rx="4"/>
+  </g>
+  <rect x="262" y="40" width="180" height="22" rx="6" fill="#1e293b"/>
+  <rect x="880" y="36" width="120" height="30" rx="6" fill="#2563eb"/>
+  <rect x="1010" y="36" width="120" height="30" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="262" y="92" width="868" height="46" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <g fill="#e2e8f0">
+    <rect x="282" y="160" width="828" height="34" rx="4"/>
+    <rect x="282" y="206" width="828" height="34" rx="4"/>
+    <rect x="282" y="252" width="828" height="34" rx="4"/>
+    <rect x="282" y="298" width="828" height="34" rx="4"/>
+  </g>
+  <text x="600" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#1e3a8a">Asset register</text>
+  <text x="600" y="592" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Preview placeholder — replace with a screenshot from your running instance</text>
+</svg>
