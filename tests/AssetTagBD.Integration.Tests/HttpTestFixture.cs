@@ -7,8 +7,7 @@ namespace AssetTagBD.Integration.Tests;
 /// <summary>Boots the real API pipeline (auth middleware included) against PostgreSQL.</summary>
 public sealed class HttpTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
+    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgres:16-alpine")
         .WithDatabase("http_tests")
         .WithUsername("postgres")
         .WithPassword("postgres")

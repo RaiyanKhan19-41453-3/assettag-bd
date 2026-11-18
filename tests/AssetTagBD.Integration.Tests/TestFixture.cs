@@ -15,8 +15,7 @@ namespace AssetTagBD.Integration.Tests;
 /// </summary>
 public sealed class TestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine")
         .WithDatabase("assettagbd_tests")
         .WithUsername("postgres")
         .WithPassword("postgres")

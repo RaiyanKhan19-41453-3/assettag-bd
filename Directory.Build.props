@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Keep static analysis on for every project; CI builds with -warnaserror. -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+</Project>
