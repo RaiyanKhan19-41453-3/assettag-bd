@@ -71,6 +71,7 @@ public sealed class PaginationAndMyAssetsTests : IntegrationTestBase
         ActAs(employeeA, tenantId, UserRole.Employee, $"emp-a-{suffix}@test.local");
         var mineA = await Send(new GetMyAssetsQuery());
         Assert.Single(mineA.Value!);
+        Assert.False(string.IsNullOrWhiteSpace(mineA.Value![0].QrCodeBase64));
 
         ActAs(employeeB, tenantId, UserRole.Employee, $"emp-b-{suffix}@test.local");
         var mineB = await Send(new GetMyAssetsQuery());

@@ -12,11 +12,16 @@ public sealed class GetMyAssetsQueryHandler : IRequestHandler<GetMyAssetsQuery, 
 {
     private readonly IAssetRepository _assets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IQrCodeService _qrCodeService;
 
-    public GetMyAssetsQueryHandler(IAssetRepository assets, ICurrentUserService currentUser)
+    public GetMyAssetsQueryHandler(
+        IAssetRepository assets,
+        ICurrentUserService currentUser,
+        IQrCodeService qrCodeService)
     {
         _assets = assets;
         _currentUser = currentUser;
+        _qrCodeService = qrCodeService;
     }
 
     public async Task<Result<IReadOnlyList<AssetDto>>> Handle(
@@ -31,7 +36,9 @@ public sealed class GetMyAssetsQueryHandler : IRequestHandler<GetMyAssetsQuery, 
 
         var assets = await _assets.GetAssignedToUserAsync(_currentUser.UserId.Value, cancellationToken);
 
-        var dtos = assets.Select(asset => AssetDto.FromEntity(asset)).ToList();
+        var dtos = assets
+            .Select(asset => AssetDto.FromEntity(asset, _qrCodeService.GenerateQrCodeBase64(asset.AssetTag)))
+            .ToList();
         return Result.Success<IReadOnlyList<AssetDto>>(dtos);
     }
 }

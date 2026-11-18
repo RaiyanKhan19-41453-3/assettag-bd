@@ -145,15 +145,26 @@ export function LoginPage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Demo accounts</p>
               <dl className="mt-2 space-y-1 text-xs text-slate-600">
                 <div className="flex justify-between gap-3">
-                  <dt>Administrator</dt><dd className="font-mono">admin@assettagbd.local / Admin@123</dd>
+                  <dt>Administrator</dt>
+                  <dd className="font-mono">
+                    {import.meta.env.VITE_DEMO_EMAIL || 'admin@assettagbd.local'} /{' '}
+                    {import.meta.env.VITE_DEMO_PASSWORD || 'Admin@123'}
+                  </dd>
                 </div>
-                <div className="flex justify-between gap-3">
-                  <dt>IT Manager</dt><dd className="font-mono">rahim@assettagbd.local / Manager@123</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt>Employee</dt><dd className="font-mono">sadia@assettagbd.local / Employee@123</dd>
-                </div>
+                {import.meta.env.VITE_DEMO_SAMPLE === 'true' && (
+                  <>
+                    <div className="flex justify-between gap-3">
+                      <dt>IT Manager</dt><dd className="font-mono">rahim@assettagbd.local / Manager@123</dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt>Employee</dt><dd className="font-mono">sadia@assettagbd.local / Employee@123</dd>
+                    </div>
+                  </>
+                )}
               </dl>
+              <p className="mt-2 text-[11px] text-slate-400">
+                Values come from the deployment environment. Enable SEED_SAMPLE_DATA for the extra accounts.
+              </p>
             </div>
           )}
 

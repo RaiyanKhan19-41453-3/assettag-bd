@@ -49,7 +49,10 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: /api
-        VITE_SHOW_DEMO_CREDENTIALS: "true"
+        VITE_SHOW_DEMO_CREDENTIALS: "${VITE_SHOW_DEMO_CREDENTIALS:-true}"
+        VITE_DEMO_EMAIL: ${SEED_ADMIN_EMAIL:-admin@assettagbd.local}
+        VITE_DEMO_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin@123}
+        VITE_DEMO_SAMPLE: ${SEED_SAMPLE_DATA:-false}
     container_name: assettagbd-frontend
     restart: unless-stopped
     depends_on:

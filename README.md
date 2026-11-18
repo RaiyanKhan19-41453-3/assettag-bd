@@ -31,7 +31,7 @@
 ## Stack
 
 - **Backend:** ASP.NET Core 8 Web API, EF Core 8, PostgreSQL, Clean Architecture (Domain → Application → Infrastructure → API), MediatR + FluentValidation, BCrypt, JWT, QRCoder, ClosedXML, MailKit.
-- **Frontend:** React 18 + TypeScript (Vite 5), TailwindCSS 3, React Router 6, TanStack Query 5, Axios, `html5-qrcode`.
+- **Frontend:** React 18 + TypeScript (Vite 8), TailwindCSS 3, React Router 7, TanStack Query 5, Axios, `html5-qrcode`.
 - **DevOps:** multi-stage Dockerfiles, Nginx, Caddy with automatic HTTPS, Docker Compose, GitHub Actions.
 
 ## Quick start (Docker)
@@ -45,7 +45,7 @@ docker compose up -d --build
 - API: http://localhost:5080 (Swagger only when `ASPNETCORE_ENVIRONMENT=Development`)
 - PostgreSQL: localhost:5432
 
-The API applies EF migrations and seeds a default tenant with a SuperAdmin on startup. The login is whatever you set as `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` in `.env` (the template uses `admin@example.com` / `change-me-admin-password`). **Change these values before exposing the app.** Demo credentials on the login page only appear when `VITE_SHOW_DEMO_CREDENTIALS=true` is passed to the frontend build.
+The API applies EF migrations and seeds a default tenant with a SuperAdmin on startup. The login is whatever you set as `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` in `.env` (the template uses `admin@example.com` / `change-me-admin-password`). **Change these values before exposing the app.** Demo credentials on the login page only appear when `VITE_SHOW_DEMO_CREDENTIALS=true` is passed to the frontend build. The Compose build passes `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` through as `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD`, and only lists the sample manager/employee accounts when `SEED_SAMPLE_DATA=true`. See `frontend/.env.example`.
 
 To onboard a customer, use **Create a company workspace** on the login screen (`POST /api/auth/signup-company`). That creates an isolated tenant plus its first SuperAdmin, who can invite IT Managers and Employees from the **Team** page. Public self-registration is disabled and emails are globally unique.
 
@@ -91,7 +91,7 @@ src/
   AssetTagBD.Infrastructure/ EF Core, repositories, JWT/BCrypt/QR/Excel/email services, migrations
   AssetTagBD.API/            Controllers, auth, exception middleware, health, metrics, seeding
 frontend/                    React SPA (services → hooks → components → pages)
-tests/                       43 xUnit integration + HTTP-pipeline tests
+tests/                       44 xUnit integration + HTTP-pipeline tests
 docker-compose*.yml          Development and production stacks
 monitoring/                  Prometheus scrape config and alert rules
 scripts/                     Backup and restore scripts
@@ -126,7 +126,7 @@ Integration tests run against real PostgreSQL Testcontainers, so Docker must be 
 dotnet test AssetTagBD.sln
 ```
 
-The 43 tests cover tenant isolation, company sign-up, invite-only registration, assignments, maintenance, import, pagination, token rotation/revocation, and an HTTP pipeline suite using `WebApplicationFactory` for auth status codes, role gates and cross-tenant 404s. CI runs the backend build + tests, frontend typecheck/build, Docker image builds, Caddy config validation and a production-stack auth smoke test on every push and PR.
+The 44 tests cover tenant isolation, company sign-up, invite-only registration, assignments, maintenance, import, pagination, token rotation/revocation, and an HTTP pipeline suite using `WebApplicationFactory` for auth status codes, role gates and cross-tenant 404s. CI runs the backend build + tests, frontend typecheck/build, Docker image builds, Caddy config validation and a production-stack auth smoke test on every push and PR.
 
 ## Production deployment
 
