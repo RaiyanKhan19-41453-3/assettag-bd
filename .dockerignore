@@ -1,0 +1,24 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/dist/
+**/node_modules/
+**/.vite/
+
+# Version control and IDEs
+.git/
+.gitignore
+.vs/
+.vscode/
+.idea/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+**/appsettings.*.local.json
+**/secrets.json
+
+# Documentation / logs
+*.log
+README.md
