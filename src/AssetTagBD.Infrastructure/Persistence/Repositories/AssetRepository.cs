@@ -76,8 +76,11 @@ public sealed class AssetRepository : Repository<Asset>, IAssetRepository
             _ => descending ? query.OrderByDescending(a => a.CreatedAt) : query.OrderBy(a => a.CreatedAt)
         };
 
+        // Clamp the offset so extreme page numbers cannot overflow int.
+        var skip = (int)Math.Min((long)(pageNumber - 1) * pageSize, int.MaxValue);
+
         var items = await query
-            .Skip((pageNumber - 1) * pageSize)
+            .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 

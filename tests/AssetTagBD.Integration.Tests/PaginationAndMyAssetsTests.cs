@@ -1,6 +1,7 @@
 using AssetTagBD.Application.Features.Assets;
 using AssetTagBD.Application.Features.Assignments;
 using AssetTagBD.Domain.Enums;
+using FluentValidation;
 
 namespace AssetTagBD.Integration.Tests;
 
@@ -36,6 +37,24 @@ public sealed class PaginationAndMyAssetsTests : IntegrationTestBase
         Assert.Equal(5, page2.Value.TotalCount);
         Assert.Equal(3, page2.Value.TotalPages);
         Assert.Equal("Monitor 24", page2.Value.Items[0].Name);
+    }
+
+    [Fact]
+    public async Task GetAssets_ExtremePageNumber_DoesNotFail()
+    {
+        await ArrangeAsync();
+
+        var threw = false;
+        try
+        {
+            await Send(new GetAssetsQuery(null, null, null, int.MaxValue, 100));
+        }
+        catch (ValidationException)
+        {
+            threw = true;
+        }
+
+        Assert.True(threw);
     }
 
     [Fact]

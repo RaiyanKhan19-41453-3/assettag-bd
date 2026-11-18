@@ -20,7 +20,7 @@ public sealed class GetAssetsQueryValidator : AbstractValidator<GetAssetsQuery>
 {
     public GetAssetsQueryValidator()
     {
-        RuleFor(x => x.PageNumber).GreaterThanOrEqualTo(1);
+        RuleFor(x => x.PageNumber).InclusiveBetween(1, 100_000);
         RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
         RuleFor(x => x.Search).MaximumLength(200);
     }
