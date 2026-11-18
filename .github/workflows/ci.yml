@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend build + integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore AssetTagBD.sln
+
+      - name: Build
+        run: dotnet build AssetTagBD.sln --no-restore --no-incremental
+
+      - name: Test (PostgreSQL Testcontainer)
+        run: dotnet test AssetTagBD.sln --no-build --verbosity minimal
+
+  frontend:
+    name: Frontend typecheck + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build all images
+        run: docker compose build
+
+      - name: Validate production compose + Caddy config
+        run: |
+          mkdir -p secrets
+          echo "ci-jwt-secret-at-least-32-characters-long" > secrets/jwt_secret.txt
+          echo "Host=db;Port=5432;Database=assettagbd;Username=postgres;Password=postgres" > secrets/db_connection.txt
+          echo "postgres" > secrets/db_password.txt
+          echo "Admin@123" > secrets/admin_password.txt
+          echo "unused-in-ci" > secrets/smtp_password.txt
+          DOMAIN=ci.example.com EMAIL=ci@example.com docker compose -f docker-compose.prod.yml config > /dev/null
+          docker run --rm -e DOMAIN=ci.example.com -e EMAIL=ci@example.com \
+            -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine \
+            caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+      - name: Smoke test production stack
+        run: |
+          export DOMAIN=ci.example.com EMAIL=ci@example.com
+          docker compose -f docker-compose.prod.yml up -d --build
+          for i in $(seq 1 60); do
+            docker compose -f docker-compose.prod.yml exec -T api \
+              curl -fsS http://127.0.0.1:8080/health/ready && break
+            sleep 2
+          done
+          TOKEN=$(docker compose -f docker-compose.prod.yml exec -T api curl -sS \
+            -X POST http://127.0.0.1:8080/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"admin@assettagbd.local","password":"Admin@123"}' | jq -r .token)
+          test -n "$TOKEN" && test "$TOKEN" != "null"
+          docker compose -f docker-compose.prod.yml exec -T api curl -fsS \
+            http://127.0.0.1:8080/api/dashboard/summary \
+            -H "Authorization: Bearer $TOKEN" > /dev/null
+          docker compose -f docker-compose.prod.yml down -v
