@@ -7,10 +7,7 @@ import { QRCodeImage } from '../components/common/QRCodeImage'
 import { CATEGORY_LABELS } from '../constants'
 import { useAuth } from '../context/AuthContext'
 import { useMyAssets } from '../hooks/useMyAssets'
-
-function formatDate(value?: string | null): string {
-  return value ? new Date(value).toLocaleDateString() : '—'
-}
+import { formatDate } from '../utils/format'
 
 export function MyAssetsPage() {
   const { user } = useAuth()

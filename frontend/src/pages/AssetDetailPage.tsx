@@ -36,17 +36,7 @@ import {
   useResolveMaintenance
 } from '../hooks/useMaintenance'
 import type { UpdateAssetRequest } from '../types'
-
-function formatDate(value?: string | null): string {
-  if (!value) return '—'
-  return new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-  })
-}
+import { formatDate, formatDateTime } from '../utils/format'
 
 export function AssetDetailPage() {
   const { id } = useParams<{ id: string }>()

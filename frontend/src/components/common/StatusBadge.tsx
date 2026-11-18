@@ -20,6 +20,12 @@ const maintenanceStyles: Record<MaintenanceStatus, string> = {
   Resolved: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
 }
 
+const maintenanceLabels: Record<MaintenanceStatus, string> = {
+  Reported: 'Reported',
+  InProgress: 'In progress',
+  Resolved: 'Resolved'
+}
+
 const base = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset'
 
 export function AssetStatusBadge({ status }: { status: AssetStatus }) {
@@ -27,5 +33,5 @@ export function AssetStatusBadge({ status }: { status: AssetStatus }) {
 }
 
 export function MaintenanceStatusBadge({ status }: { status: MaintenanceStatus }) {
-  return <span className={`${base} ${maintenanceStyles[status]}`}>{status}</span>
+  return <span className={`${base} ${maintenanceStyles[status]}`}>{maintenanceLabels[status]}</span>
 }

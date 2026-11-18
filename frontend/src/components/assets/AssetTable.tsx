@@ -1,6 +1,7 @@
 import { Eye, Trash2, UserPlus } from 'lucide-react'
 import { AssetStatusBadge } from '../common/StatusBadge'
 import { CATEGORY_LABELS } from '../../constants'
+import { formatDate } from '../../utils/format'
 import type { Asset } from '../../types'
 
 interface AssetTableProps {
@@ -10,14 +11,6 @@ interface AssetTableProps {
   onView: (id: string) => void
   onAssign: (asset: Asset) => void
   onDelete: (asset: Asset) => void
-}
-
-function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
 }
 
 export function AssetTable({

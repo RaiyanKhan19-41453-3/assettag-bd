@@ -17,6 +17,7 @@ import { AssetStatusBadge } from '../components/common/StatusBadge'
 import { ApiError } from '../services/api'
 import { useAssetByTag } from '../hooks/useAssets'
 import { useAssignAsset, useReturnAsset } from '../hooks/useAssignments'
+import { formatDate } from '../utils/format'
 
 const READER_ID = 'qr-reader'
 
@@ -267,7 +268,7 @@ export function ScannerPage() {
                 <div>
                   <dt className="text-xs text-slate-500">Warranty</dt>
                   <dd className="mt-0.5 font-medium text-slate-800">
-                    {asset.warrantyExpiryDate ? new Date(asset.warrantyExpiryDate).toLocaleDateString() : '—'}
+                    {formatDate(asset.warrantyExpiryDate)}
                   </dd>
                 </div>
               </dl>
