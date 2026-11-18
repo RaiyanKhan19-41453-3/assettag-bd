@@ -1,0 +1,23 @@
+{
+  email {$EMAIL}
+}
+
+{$DOMAIN} {
+  encode zstd gzip
+
+  log {
+    output stdout
+    format json
+  }
+
+  # Only the API is public. Health probes and Prometheus scrape the API
+  # directly on the internal compose network (api:8080), not through Caddy.
+  handle /api/* {
+    reverse_proxy api:8080
+  }
+
+  # Everything else is the SPA (including client-side routes).
+  handle {
+    reverse_proxy frontend:80
+  }
+}

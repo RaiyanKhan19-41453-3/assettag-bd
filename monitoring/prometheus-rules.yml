@@ -1,0 +1,31 @@
+groups:
+  - name: assettagbd
+    rules:
+      - alert: ApiDown
+        expr: up{job="assettagbd-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AssetTag BD API is unreachable"
+          description: "The /metrics scrape has failed for more than one minute."
+
+      - alert: HighServerErrorRate
+        expr: |
+          sum(rate(http_request_duration_seconds_count{job="assettagbd-api",code=~"5.."}[5m]))
+          / clamp_min(sum(rate(http_request_duration_seconds_count{job="assettagbd-api"}[5m])), 1) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 5% of requests return 5xx"
+          description: "Check structured logs in the api container."
+
+      - alert: DatabaseNotReady
+        expr: up{job="assettagbd-api"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API (and therefore database readiness) is unreachable"
+          description: "Check /health/ready on the api container."

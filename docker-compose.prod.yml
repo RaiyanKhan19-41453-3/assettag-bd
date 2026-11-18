@@ -1,0 +1,108 @@
+# Production stack: Caddy terminates TLS automatically (Let's Encrypt).
+# Required environment: DOMAIN, EMAIL and the files under ./secrets/.
+# A distinct project name keeps this stack separate from the dev compose stack.
+name: assettagbd-prod
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: assettagbd-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-assettagbd}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres-data-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-assettagbd}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: src/AssetTagBD.API/Dockerfile
+    container_name: assettagbd-api-prod
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection_FILE: /run/secrets/db_connection
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      Jwt__Issuer: ${JWT_ISSUER:-AssetTagBD}
+      Jwt__Audience: ${JWT_AUDIENCE:-AssetTagBD}
+      Jwt__ExpiryMinutes: ${JWT_EXPIRY_MINUTES:-480}
+      Cors__AllowedOrigins__0: https://${DOMAIN:?DOMAIN is required}
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-admin@assettagbd.local}
+      Seed__AdminPassword_FILE: /run/secrets/admin_password
+      Seed__SampleData: "false"
+      Auth__ExposeResetTokenInResponse: "false"
+      Email__From: ${EMAIL_FROM:-noreply@assettagbd.local}
+      Email__Smtp__Host: ${SMTP_HOST:-}
+      Email__Smtp__Port: ${SMTP_PORT:-587}
+      Email__Smtp__User: ${SMTP_USER:-}
+      Email__Smtp__UseSsl: ${SMTP_USE_SSL:-false}
+      Email__Smtp__Password_FILE: /run/secrets/smtp_password
+    secrets:
+      - db_connection
+      - jwt_secret
+      - admin_password
+      - smtp_password
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    container_name: assettagbd-frontend-prod
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: assettagbd-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN is required}
+      EMAIL: ${EMAIL:?EMAIL is required}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+      - frontend
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  db_connection:
+    file: ./secrets/db_connection.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  admin_password:
+    file: ./secrets/admin_password.txt
+  smtp_password:
+    file: ./secrets/smtp_password.txt
+
+volumes:
+  postgres-data-prod:
+  caddy-data:
+  caddy-config:

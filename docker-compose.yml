@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: assettagbd-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-assettagbd}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-assettagbd}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  api:
+    build:
+      context: .
+      dockerfile: src/AssetTagBD.API/Dockerfile
+    container_name: assettagbd-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-assettagbd};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      Jwt__Secret: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      Jwt__Issuer: ${JWT_ISSUER:-AssetTagBD}
+      Jwt__Audience: ${JWT_AUDIENCE:-AssetTagBD}
+      Jwt__ExpiryMinutes: ${JWT_EXPIRY_MINUTES:-480}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      Cors__AllowedOrigins__1: http://localhost:5173
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-admin@assettagbd.local}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-Admin@123}
+      Seed__SampleData: ${SEED_SAMPLE_DATA:-false}
+      Auth__ExposeResetTokenInResponse: ${AUTH_EXPOSE_RESET_TOKEN:-false}
+    ports:
+      - "${API_PORT:-5080}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+        VITE_SHOW_DEMO_CREDENTIALS: "true"
+    container_name: assettagbd-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+
+volumes:
+  postgres-data:
