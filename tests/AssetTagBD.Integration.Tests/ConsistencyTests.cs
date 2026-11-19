@@ -97,6 +97,19 @@ public sealed class ConsistencyTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task UpdateAsset_AvailableWithOpenTicket_IsRejected()
+    {
+        await ArrangeAsync();
+        var asset = await Send(new CreateAssetCommand(null, "Broken", AssetCategory.Laptop, null, DateTime.UtcNow, null));
+        await Send(new CreateMaintenanceLogCommand(asset.Value!.Id, "Needs repair"));
+
+        var result = await Send(Update(asset.Value.Id, AssetStatus.Available));
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Conflict", result.Error.Code);
+    }
+
+    [Fact]
     public async Task ReportMaintenance_OnRetiredAsset_IsRejected()
     {
         await ArrangeAsync();

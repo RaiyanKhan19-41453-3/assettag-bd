@@ -91,7 +91,7 @@ src/
   AssetTagBD.Infrastructure/ EF Core, repositories, JWT/BCrypt/QR/Excel/email services, migrations
   AssetTagBD.API/            Controllers, auth, exception middleware, health, metrics, seeding
 frontend/                    React SPA (services → hooks → components → pages)
-tests/                       45 xUnit integration + HTTP-pipeline tests
+tests/                       46 xUnit integration + HTTP-pipeline tests
 docker-compose*.yml          Development and production stacks
 monitoring/                  Prometheus scrape config and alert rules
 scripts/                     Backup and restore scripts
@@ -126,7 +126,7 @@ Integration tests run against real PostgreSQL Testcontainers, so Docker must be 
 dotnet test AssetTagBD.sln
 ```
 
-The 45 tests cover tenant isolation, company sign-up, invite-only registration, assignments, maintenance, import, pagination, token rotation/revocation, and an HTTP pipeline suite using `WebApplicationFactory` for auth status codes, role gates and cross-tenant 404s. CI runs the backend build + tests, frontend typecheck/build, Docker image builds, Caddy config validation and a production-stack auth smoke test on every push and PR.
+The 46 tests cover tenant isolation, company sign-up, invite-only registration, assignments, maintenance, import, pagination, token rotation/revocation, and an HTTP pipeline suite using `WebApplicationFactory` for auth status codes, role gates and cross-tenant 404s. CI runs the backend build + tests, frontend typecheck/build, Docker image builds, Caddy config validation and a production-stack auth smoke test on every push and PR.
 
 ## Production deployment
 

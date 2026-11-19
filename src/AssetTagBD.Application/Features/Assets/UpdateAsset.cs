@@ -83,14 +83,19 @@ public sealed class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetComma
                 "Return the asset before retiring it."));
         }
 
-        if (request.Status == AssetStatus.UnderMaintenance)
+        var logs = await _maintenanceLogs.GetByAssetIdAsync(asset.Id, cancellationToken);
+        var hasOpenTicket = logs.Any(log => log.Status is MaintenanceStatus.Reported or MaintenanceStatus.InProgress);
+
+        if (request.Status == AssetStatus.UnderMaintenance && !hasOpenTicket)
         {
-            var logs = await _maintenanceLogs.GetByAssetIdAsync(asset.Id, cancellationToken);
-            if (!logs.Any(log => log.Status is MaintenanceStatus.Reported or MaintenanceStatus.InProgress))
-            {
-                return Result.Failure<AssetDto>(AppErrors.Conflict(
-                    "Report a maintenance issue before marking the asset UnderMaintenance."));
-            }
+            return Result.Failure<AssetDto>(AppErrors.Conflict(
+                "Report a maintenance issue before marking the asset UnderMaintenance."));
+        }
+
+        if (request.Status == AssetStatus.Available && hasOpenTicket)
+        {
+            return Result.Failure<AssetDto>(AppErrors.Conflict(
+                "Resolve open maintenance issues before marking the asset Available."));
         }
 
         asset.Name = request.Name.Trim();
