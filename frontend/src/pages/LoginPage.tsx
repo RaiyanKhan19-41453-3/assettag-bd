@@ -21,8 +21,8 @@ export function LoginPage() {
     setSubmitting(true)
 
     try {
-      await login({ email: email.trim().toLowerCase(), password })
-      navigate('/dashboard', { replace: true })
+      const user = await login({ email: email.trim().toLowerCase(), password })
+      navigate(user.role === 'Employee' ? '/my-assets' : '/dashboard', { replace: true })
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {

@@ -23,7 +23,7 @@ const ScannerPage = lazy(() =>
 )
 
 function SessionGate({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { user, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -33,7 +33,10 @@ function SessionGate({ children }: { children: ReactNode }) {
     )
   }
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children
+  // Keep this consistent with LoginPage's post-login navigation, otherwise
+  // the gate overrides it and employees land on the manager dashboard route.
+  const target = user?.role === 'Employee' ? '/my-assets' : '/dashboard'
+  return user ? <Navigate to={target} replace /> : children
 }
 
 function LoginRoute() {

@@ -22,7 +22,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['SuperAdmin', 'ITManager'] },
   { to: '/assets', label: 'Assets', icon: Boxes },
   { to: '/my-assets', label: 'My assets', icon: Laptop },
   { to: '/scan', label: 'Scan QR', icon: QrCode, roles: ['ITManager', 'SuperAdmin'] },

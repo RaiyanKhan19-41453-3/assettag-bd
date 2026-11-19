@@ -16,7 +16,7 @@ interface AuthContextValue {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
-  login: (data: LoginRequest) => Promise<void>
+  login: (data: LoginRequest) => Promise<User>
   signupCompany: (data: SignupCompanyRequest) => Promise<void>
   logout: () => void
   hasRole: (...roles: UserRole[]) => boolean
@@ -68,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken)
       setUser(response.user)
       queryClient.clear()
+      return response.user
     },
     [queryClient]
   )
