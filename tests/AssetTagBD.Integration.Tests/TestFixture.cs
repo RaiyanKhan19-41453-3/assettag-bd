@@ -29,17 +29,28 @@ public sealed class TestFixture : IAsyncLifetime
     {
         await _postgres.StartAsync();
 
+        Services = CreateServices();
+
+        using var scope = Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<AppDbContext>()
+            .Database.MigrateAsync();
+    }
+
+    /// <summary>Build a provider against the same database, optionally swapping a service.</summary>
+    public IServiceProvider CreateServices(IEmailSender? emailSender = null)
+    {
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddApplication();
         services.AddInfrastructureForTests(_postgres.GetConnectionString());
         services.AddSingleton<ICurrentUserService>(CurrentUser);
 
-        Services = services.BuildServiceProvider();
+        if (emailSender is not null)
+        {
+            services.AddScoped<IEmailSender>(_ => emailSender);
+        }
 
-        using var scope = Services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<AppDbContext>()
-            .Database.MigrateAsync();
+        return services.BuildServiceProvider();
     }
 
     public async Task DisposeAsync() => await _postgres.DisposeAsync();

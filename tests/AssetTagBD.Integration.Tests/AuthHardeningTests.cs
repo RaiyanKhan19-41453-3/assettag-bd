@@ -1,6 +1,9 @@
+using AssetTagBD.Application.Common.Interfaces;
 using AssetTagBD.Application.DTOs.Auth;
 using AssetTagBD.Application.Features.Auth;
 using AssetTagBD.Domain.Enums;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AssetTagBD.Integration.Tests;
 
@@ -129,6 +132,35 @@ public sealed class AuthHardeningTests : IntegrationTestBase
         Fixture.CurrentUser.Clear();
         var reuse = await Send(new ResetPasswordCommand(email, second.Value.DevToken!, "Again@123"));
         Assert.True(reuse.IsFailure);
+    }
+
+    [Fact]
+    public async Task ForgotPassword_EmailFailure_RollsBackTokenChanges()
+    {
+        await ArrangeAsync();
+        Fixture.CurrentUser.Clear();
+        var email = $"rollback-{Guid.NewGuid():N}@test.local";
+        await SeedTenantAsync($"Rollback {Guid.NewGuid():N}", $"rollback-{Guid.NewGuid():N}", email);
+
+        var first = await Send(new ForgotPasswordCommand(email));
+        var firstToken = first.Value!.DevToken!;
+
+        // A second request whose email delivery fails must not consume the
+        // previous still-valid link.
+        var provider = Fixture.CreateServices(new ThrowingEmailSender());
+        using var scope = provider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => mediator.Send(new ForgotPasswordCommand(email)));
+
+        var reset = await Send(new ResetPasswordCommand(email, firstToken, "Recovered@123"));
+        Assert.True(reset.IsSuccess);
+    }
+
+    private sealed class ThrowingEmailSender : IEmailSender
+    {
+        public Task SendPasswordResetAsync(string email, string token, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("SMTP unavailable.");
     }
 
     [Fact]

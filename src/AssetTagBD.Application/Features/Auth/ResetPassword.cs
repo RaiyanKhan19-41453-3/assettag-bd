@@ -63,6 +63,10 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
             return Result.Failure<bool>(AppErrors.BadRequest("This password reset link is invalid."));
         }
 
+        // One transaction: token consumption, password change and session
+        // revocation must all happen together or none of them do.
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
         // Conditional UPDATE is the real single-use guard - two concurrent
         // requests cannot both consume the same token.
         var consumed = await _resetTokens.TryConsumeAsync(
@@ -81,6 +85,7 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
         // Logging out every session is the safe default after a password change.
         await _refreshTokens.RevokeAllForUserAsync(user.Id, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result.Success(true);
     }

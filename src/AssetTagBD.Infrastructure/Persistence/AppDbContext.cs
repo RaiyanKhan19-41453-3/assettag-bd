@@ -39,6 +39,9 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
+    public async Task<IWorkTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default) =>
+        new WorkTransaction(await Database.BeginTransactionAsync(cancellationToken));
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

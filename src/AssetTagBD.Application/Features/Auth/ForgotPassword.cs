@@ -76,32 +76,24 @@ public sealed class ForgotPasswordCommandHandler
 
         var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 
+        // Everything or nothing: a failed email must not leave a live token,
+        // nor invalidate the user's previous still-valid link.
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
         // Only the newest link should remain usable.
         await _resetTokens.RevokeUnusedForUserAsync(user.Id, DateTime.UtcNow, cancellationToken);
 
-        var resetToken = new PasswordResetToken
+        await _resetTokens.AddAsync(new PasswordResetToken
         {
             UserId = user.Id,
             TokenHash = Hash(rawToken),
             ExpiresAt = DateTime.UtcNow.AddHours(TokenLifetimeHours),
             TenantId = user.TenantId
-        };
+        }, cancellationToken);
 
-        await _resetTokens.AddAsync(resetToken, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        try
-        {
-            await _emailSender.SendPasswordResetAsync(user.Email, rawToken, cancellationToken);
-        }
-        catch
-        {
-            // Don't leave a live reset link in the database when no email was
-            // delivered. Compensate, then let the caller surface the failure.
-            _resetTokens.Remove(resetToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            throw;
-        }
+        await _emailSender.SendPasswordResetAsync(user.Email, rawToken, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         var devToken = _settings.ExposeResetTokenInResponse ? rawToken : null;
         return Result.Success(new ForgotPasswordResponse(GenericMessage, devToken));

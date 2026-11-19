@@ -55,6 +55,10 @@ public sealed class RefreshTokenService : IRefreshTokenService
 
         var (newRawToken, newEntity) = CreateToken(user);
 
+        // Revocation and issuance are one atomic operation: a crash between
+        // them must never leave the user with no usable token.
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
         // Conditional UPDATE: only the first caller to revoke the old token wins.
         var revoked = await _tokens.TryRevokeAsync(
             tokenHash, Hash(newRawToken), DateTime.UtcNow, cancellationToken);
@@ -65,6 +69,7 @@ public sealed class RefreshTokenService : IRefreshTokenService
 
         await _tokens.AddAsync(newEntity, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return (user, newRawToken);
     }
