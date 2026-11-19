@@ -1,8 +1,12 @@
 using AssetTagBD.Application.Features.Assets;
 using AssetTagBD.Application.Features.Assignments;
+using AssetTagBD.Application.Features.Audit;
 using AssetTagBD.Application.Features.Maintenance;
 using AssetTagBD.Domain.Enums;
+using AssetTagBD.Infrastructure.Persistence;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AssetTagBD.Integration.Tests;
 
@@ -93,6 +97,46 @@ public sealed class AssetWorkflowTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task SuccessfulCommand_WritesAuditEntry()
+    {
+        var (tenantId, _, _, _) = await ArrangeAsync();
+        var asset = await Send(new CreateAssetCommand(null, "Audited", AssetCategory.Laptop, null, DateTime.UtcNow, null));
+
+        var audit = await Send(new GetAuditEntriesQuery());
+
+        Assert.True(audit.IsSuccess);
+        Assert.Contains(audit.Value!.Items, entry =>
+            entry.Action == "CreateAsset" && entry.EntityId == asset.Value!.Id);
+    }
+
+    [Fact]
+    public async Task DeleteAsset_SoftDeletesButKeepsHistory()
+    {
+        var (tenantId, _, _, _) = await ArrangeAsync();
+        var employee = await SeedUserAsync(tenantId, UserRole.Employee, $"softdel-{Guid.NewGuid():N}@test.local");
+        var asset = await Send(new CreateAssetCommand(null, "Keep History", AssetCategory.Laptop, null, DateTime.UtcNow, null));
+        await Send(new AssignAssetCommand(asset.Value!.Id, employee, null));
+        var returned = await Send(new ReturnAssetCommand(asset.Value.Id, "Returned before deletion"));
+        Assert.True(returned.IsSuccess, returned.Error.Message);
+
+        var deleted = await Send(new DeleteAssetCommand(asset.Value.Id));
+        Assert.True(deleted.IsSuccess, deleted.Error.Message);
+
+        var detail = await Send(new GetAssetByIdQuery(asset.Value.Id));
+        Assert.True(detail.IsFailure);
+        Assert.Equal("NotFound", detail.Error.Code);
+
+        var list = await Send(new GetAssetsQuery(null, null, null));
+        Assert.DoesNotContain(list.Value!.Items, item => item.Id == asset.Value.Id);
+
+        // History rows still exist in the database, hidden by the soft-delete filter.
+        using var scope = Fixture.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.True(await db.Assignments.IgnoreQueryFilters()
+            .AnyAsync(a => a.AssetId == asset.Value.Id));
+    }
+
+    [Fact]
     public async Task ConcurrentAssign_OnlyOneSucceeds()
     {
         var (tenantId, _, _, _) = await ArrangeAsync();
@@ -116,7 +160,7 @@ public sealed class AssetWorkflowTests : IntegrationTestBase
             TryAssign(asset.Value!.Id, employee),
             TryAssign(asset.Value.Id, employee));
 
-        Assert.Single(outcomes.Where(success => success));
+        Assert.Single(outcomes, success => success);
 
         var history = await Send(new GetAssignmentHistoryQuery(asset.Value.Id));
         Assert.Single(history.Value!);

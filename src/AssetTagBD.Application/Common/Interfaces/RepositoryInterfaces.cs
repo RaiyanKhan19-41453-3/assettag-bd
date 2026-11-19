@@ -110,6 +110,11 @@ public interface IAssignmentRepository : IRepository<Assignment>
     Task<int> CountActiveAsync(CancellationToken cancellationToken = default);
 }
 
+public interface IAuditRepository
+{
+    Task<PagedResult<AuditEntry>> SearchAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+}
+
 public interface IMaintenanceLogRepository : IRepository<MaintenanceLog>
 {
     /// <summary>Tracking query with asset and reporter loaded, for resolve handlers.</summary>

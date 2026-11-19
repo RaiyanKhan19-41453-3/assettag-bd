@@ -47,7 +47,10 @@ public sealed class DeleteAssetCommandHandler : IRequestHandler<DeleteAssetComma
                 "Return the asset before deleting it so the audit trail is preserved."));
         }
 
-        _assets.Remove(asset);
+        // Soft delete: the asset disappears from every filtered query, but its
+        // assignment and maintenance history is preserved for the audit trail.
+        asset.DeletedAt = DateTime.UtcNow;
+        _assets.Update(asset);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(true);

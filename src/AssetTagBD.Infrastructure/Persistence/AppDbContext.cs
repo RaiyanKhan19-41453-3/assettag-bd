@@ -39,6 +39,8 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
+
     public async Task<IWorkTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default) =>
         new WorkTransaction(await Database.BeginTransactionAsync(cancellationToken));
 
@@ -51,10 +53,12 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
         // The filter captures this context instance, so EF evaluates _currentTenantId
         // per request rather than baking the first request's tenant into the model.
         modelBuilder.Entity<User>().HasQueryFilter(e => e.TenantId == _currentTenantId);
-        modelBuilder.Entity<Asset>().HasQueryFilter(e => e.TenantId == _currentTenantId);
+        modelBuilder.Entity<Asset>().HasQueryFilter(e =>
+            e.TenantId == _currentTenantId && e.DeletedAt == null);
         modelBuilder.Entity<Assignment>().HasQueryFilter(e => e.TenantId == _currentTenantId);
         modelBuilder.Entity<MaintenanceLog>().HasQueryFilter(e => e.TenantId == _currentTenantId);
         modelBuilder.Entity<RefreshToken>().HasQueryFilter(e => e.TenantId == _currentTenantId);
         modelBuilder.Entity<PasswordResetToken>().HasQueryFilter(e => e.TenantId == _currentTenantId);
+        modelBuilder.Entity<AuditEntry>().HasQueryFilter(e => e.TenantId == _currentTenantId);
     }
 }

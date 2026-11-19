@@ -155,6 +155,16 @@ export interface CreateMaintenanceLogRequest {
   issueDescription: string
 }
 
+export interface AuditEntry {
+  id: string
+  action: string
+  entityType: string
+  entityId?: string | null
+  actor: string
+  details?: string | null
+  occurredAt: string
+}
+
 export interface PagedResult<T> {
   items: T[]
   pageNumber: number

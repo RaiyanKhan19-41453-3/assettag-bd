@@ -49,6 +49,8 @@ public sealed class AssetConfiguration : IEntityTypeConfiguration<Asset>
         builder.Property(a => a.CreatedAt)
             .IsRequired();
 
+        builder.Property(a => a.DeletedAt);
+
         // History rows belong to their asset, so remove them with it.
         builder.HasMany(a => a.Assignments)
             .WithOne(x => x.Asset)

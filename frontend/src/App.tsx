@@ -6,6 +6,7 @@ import { LoadingSpinner } from './components/common/LoadingSpinner'
 import { AppLayout } from './components/layout/AppLayout'
 import { useAuth } from './context/AuthContext'
 import { AssetDetailPage } from './pages/AssetDetailPage'
+import { AuditPage } from './pages/AuditPage'
 import { AssetsPage } from './pages/AssetsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
@@ -83,6 +84,10 @@ export default function App() {
 
           <Route element={<ProtectedRoute allowedRoles={['SuperAdmin']} />}>
             <Route path="/team" element={<TeamPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={['SuperAdmin', 'ITManager']} />}>
+            <Route path="/audit" element={<AuditPage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

@@ -77,6 +77,8 @@ internal static class TestServiceRegistration
         services.AddScoped<IRefreshTokenRepository, Infrastructure.Persistence.Repositories.RefreshTokenRepository>();
         services.AddScoped<IPasswordResetRepository, Infrastructure.Persistence.Repositories.PasswordResetRepository>();
         services.AddScoped<IRefreshTokenService, Infrastructure.Services.RefreshTokenService>();
+        services.AddScoped<IAuditWriter, Infrastructure.Services.AuditWriter>();
+        services.AddScoped<IAuditRepository, Infrastructure.Persistence.Repositories.AuditRepository>();
         services.AddScoped<IEmailSender, Infrastructure.Services.LoggingEmailSender>();
         services.AddSingleton<IAuthSettings>(new AuthSettings(ExposeResetTokenInResponse: true));
         services.Configure<JwtSettings>(settings =>

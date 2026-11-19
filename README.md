@@ -82,6 +82,8 @@ Set `VITE_API_URL=http://localhost:5080/api` in `frontend/.env` (see `.env.examp
 
 The asset list is server-paginated (12 per page, sortable by name/tag/purchase date/status). Asset status stays consistent with the assignment record: an asset cannot be marked Assigned without an active assignment, or Available while one exists — use the Assign/Return actions instead. A database-level unique index guarantees at most one active assignment per asset even under concurrent requests.
 
+Deleting an asset is a **soft delete**: it disappears from every query but its assignment and maintenance history is retained. Managers can view the **Activity log** (`GET /api/audit`), an append-only record written by the CQRS pipeline after every successful command, with actor, action, entity and a sanitized detail snapshot. Auth commands are excluded so secrets never enter the log.
+
 ## Project layout
 
 ```
@@ -91,7 +93,7 @@ src/
   AssetTagBD.Infrastructure/ EF Core, repositories, JWT/BCrypt/QR/Excel/email services, migrations
   AssetTagBD.API/            Controllers, auth, exception middleware, health, metrics, seeding
 frontend/                    React SPA (services → hooks → components → pages)
-tests/                       47 xUnit integration + HTTP-pipeline tests
+tests/                       49 xUnit integration + HTTP-pipeline tests
 docker-compose*.yml          Development and production stacks
 monitoring/                  Prometheus scrape config and alert rules
 scripts/                     Backup and restore scripts
@@ -126,7 +128,7 @@ Integration tests run against real PostgreSQL Testcontainers, so Docker must be 
 dotnet test AssetTagBD.sln
 ```
 
-The 47 tests cover tenant isolation, company sign-up, invite-only registration, assignments, maintenance, import, pagination, token rotation/revocation, and an HTTP pipeline suite using `WebApplicationFactory` for auth status codes, role gates and cross-tenant 404s. CI runs the backend build + tests, a NuGet vulnerability audit, frontend lint/typecheck/build and `npm audit`, Docker image builds, Caddy config validation and a production-stack auth smoke test on every push and PR.
+The 49 tests cover tenant isolation, company sign-up, invite-only registration, assignments, maintenance, import, pagination, token rotation/revocation, and an HTTP pipeline suite using `WebApplicationFactory` for auth status codes, role gates and cross-tenant 404s. CI runs the backend build + tests, a NuGet vulnerability audit, frontend lint/typecheck/build and `npm audit`, Docker image builds, Caddy config validation and a production-stack auth smoke test on every push and PR.
 
 ## Production deployment
 

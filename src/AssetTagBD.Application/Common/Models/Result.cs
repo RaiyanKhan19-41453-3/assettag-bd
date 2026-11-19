@@ -1,5 +1,11 @@
 namespace AssetTagBD.Application.Common.Models;
 
+/// <summary>Allows pipeline behaviours to inspect success without knowing T.</summary>
+public interface IResultMarker
+{
+    bool IsSuccess { get; }
+}
+
 /// <summary>Represents a business/validation error rather than an exception.</summary>
 public sealed record Error(string Code, string Message)
 {
@@ -10,7 +16,7 @@ public sealed record Error(string Code, string Message)
 /// A result type that lets handlers return expected failures without throwing.
 /// Unexpected exceptions are still handled by the global exception middleware.
 /// </summary>
-public sealed class Result<T>
+public sealed class Result<T> : IResultMarker
 {
     public bool IsSuccess { get; }
 

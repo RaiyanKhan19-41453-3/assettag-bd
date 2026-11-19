@@ -29,6 +29,9 @@ public class Asset : BaseEntity
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Soft delete marker — history is retained for audit purposes.</summary>
+    public DateTime? DeletedAt { get; set; }
+
     // Navigation properties
     public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
 

@@ -56,8 +56,8 @@ public sealed class AuthHardeningTests : IntegrationTestBase
         var second = Send(new RefreshTokenCommand(original));
         var results = await Task.WhenAll(first, second);
 
-        Assert.Single(results.Where(result => result.IsSuccess));
-        Assert.Single(results.Where(result => result.IsFailure));
+        Assert.Single(results, result => result.IsSuccess);
+        Assert.Single(results, result => result.IsFailure);
     }
 
     [Fact]

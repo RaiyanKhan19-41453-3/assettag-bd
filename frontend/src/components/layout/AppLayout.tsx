@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Boxes,
+  History,
   Laptop,
   LayoutDashboard,
   LogOut,
@@ -26,7 +27,8 @@ const navItems: NavItem[] = [
   { to: '/assets', label: 'Assets', icon: Boxes },
   { to: '/my-assets', label: 'My assets', icon: Laptop },
   { to: '/scan', label: 'Scan QR', icon: QrCode, roles: ['ITManager', 'SuperAdmin'] },
-  { to: '/team', label: 'Team', icon: Users, roles: ['SuperAdmin'] }
+  { to: '/team', label: 'Team', icon: Users, roles: ['SuperAdmin'] },
+  { to: '/audit', label: 'Activity log', icon: History, roles: ['SuperAdmin', 'ITManager'] }
 ]
 
 const roleLabels: Record<UserRole, string> = {

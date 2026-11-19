@@ -37,6 +37,8 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<IAuditWriter, AuditWriter>();
+        services.AddScoped<IAuditRepository, AuditRepository>();
 
         var authSettings = new AuthSettings(configuration.GetValue<bool>("Auth:ExposeResetTokenInResponse"));
         services.AddSingleton<IAuthSettings>(authSettings);

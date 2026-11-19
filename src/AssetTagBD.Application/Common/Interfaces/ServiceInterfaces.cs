@@ -75,6 +75,18 @@ public interface IEmailSender
     Task SendPasswordResetAsync(string email, string token, CancellationToken cancellationToken = default);
 }
 
+public sealed record AuditRecord(
+    string Action,
+    string EntityType,
+    Guid? EntityId,
+    string? Details);
+
+/// <summary>Writes audit entries using the current scoped context.</summary>
+public interface IAuditWriter
+{
+    Task RecordAsync(AuditRecord record, CancellationToken cancellationToken = default);
+}
+
 /// <summary>Auth-related feature switches supplied by configuration.</summary>
 public interface IAuthSettings
 {
