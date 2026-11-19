@@ -37,10 +37,35 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+const string DevelopmentJwtSecret = "asset-tag-bd-development-secret-change-in-production-1234567890";
+
 var jwtSecret = SecretReader.Read(builder.Configuration, "Jwt:Secret");
 if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
 {
     throw new InvalidOperationException("Jwt:Secret (or JWT_SECRET_FILE) must provide at least 32 characters.");
+}
+
+if (builder.Environment.IsProduction())
+{
+    // Fail fast rather than shipping with known credentials from appsettings.
+    if (jwtSecret == DevelopmentJwtSecret)
+    {
+        throw new InvalidOperationException(
+            "Production must not use the development JWT secret. Set JWT_SECRET_FILE.");
+    }
+
+    if (string.IsNullOrWhiteSpace(SecretReader.Read(builder.Configuration, "Seed:AdminPassword")))
+    {
+        throw new InvalidOperationException(
+            "Production must configure the initial admin password. Set Seed__AdminPassword_FILE.");
+    }
+
+    if (string.IsNullOrWhiteSpace(
+            SecretReader.Read(builder.Configuration, "ConnectionStrings:DefaultConnection")))
+    {
+        throw new InvalidOperationException(
+            "Production must configure the database connection string.");
+    }
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
