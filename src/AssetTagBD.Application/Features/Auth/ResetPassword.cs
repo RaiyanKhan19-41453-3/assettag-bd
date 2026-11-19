@@ -72,6 +72,9 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
             return Result.Failure<bool>(AppErrors.BadRequest("This password reset link is invalid or has expired."));
         }
 
+        // Any other outstanding reset links for this user become useless too.
+        await _resetTokens.RevokeUnusedForUserAsync(user.Id, DateTime.UtcNow, cancellationToken);
+
         user.PasswordHash = _passwordHasher.Hash(request.NewPassword);
         user.TokenVersion++; // invalidates every access token issued before this reset
 

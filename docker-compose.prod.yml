@@ -87,8 +87,10 @@ services:
       - caddy-data:/data
       - caddy-config:/config
     depends_on:
-      - api
-      - frontend
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
 
 secrets:
   db_password:

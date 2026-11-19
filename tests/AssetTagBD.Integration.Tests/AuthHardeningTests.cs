@@ -105,6 +105,33 @@ public sealed class AuthHardeningTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task PasswordReset_InvalidatesOtherOutstandingLinks()
+    {
+        await ArrangeAsync();
+        Fixture.CurrentUser.Clear();
+        var email = $"multi-{Guid.NewGuid():N}@test.local";
+        await SeedTenantAsync($"Multi {Guid.NewGuid():N}", $"multi-{Guid.NewGuid():N}", email);
+
+        var first = await Send(new ForgotPasswordCommand(email));
+        // The second request invalidates the first one at issue time.
+        var second = await Send(new ForgotPasswordCommand(email));
+
+        Assert.False(string.IsNullOrWhiteSpace(first.Value!.DevToken));
+        Assert.False(string.IsNullOrWhiteSpace(second.Value!.DevToken));
+
+        // Issuing the second link invalidated the first.
+        var stale = await Send(new ResetPasswordCommand(email, first.Value.DevToken!, "Stale@123"));
+        Assert.True(stale.IsFailure);
+
+        var reset = await Send(new ResetPasswordCommand(email, second.Value!.DevToken!, "Changed@123"));
+        Assert.True(reset.IsSuccess);
+
+        Fixture.CurrentUser.Clear();
+        var reuse = await Send(new ResetPasswordCommand(email, second.Value.DevToken!, "Again@123"));
+        Assert.True(reuse.IsFailure);
+    }
+
+    [Fact]
     public async Task PasswordReset_ChangesPasswordAndRevokesExistingSessions()
     {
         var (_, _, email) = await ArrangeAsync();
